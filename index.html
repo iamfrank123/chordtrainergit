@@ -1146,32 +1146,6 @@
         let historyIndex = -1;
         let isChordDisplayed = false;
 
-        // Advanced Pitch Detection Constants & State
-        function isMobileDevice() {
-            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) || (window.innerWidth <= 768);
-        }
-
-        const IS_MOBILE = isMobileDevice();
-        const NOTE_CONFIDENCE_THRESHOLD = 0.35;
-        const NOTE_SUSTAIN_TIME = 150; // ms
-        const MIN_FREQUENCY = 65;   // C2
-        const MAX_FREQUENCY = 2093; // C7
-        const FFT_SIZE = IS_MOBILE ? 4096 : 8192;
-        const MEYDA_BUFFER_SIZE = IS_MOBILE ? 2048 : 4096;
-        const PEAK_THRESHOLD = IS_MOBILE ? -75 : -70; // dB
-        const SCAN_STEP = IS_MOBILE ? 2 : 1; // Skip bins on mobile to save CPU
-
-
-        let detectedNotes = new Map(); // Note Index -> { confidence: 0-1, lastSeen: timestamp }
-
-        // Microphone variables
-        let micContext, analyser, micStream, micRunning = false;
-        let previousChroma = new Float32Array(12).fill(0);
-        let smoothingAlpha = 0.65;
-        let micSource;
-        let pitchDetectionFrame;
-        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-
         const translations = {
             en: {
                 appTitle: "Interactive Jazz Chord Trainer",
@@ -1582,15 +1556,40 @@
         const midiToNoteName = midi => { const octave = Math.floor(midi / 12) - 1; const noteIndex = midi % 12; return noteNamesSharp[noteIndex] + octave; };
         function updateEnabledChordsReminder() { const enabledChords = Array.from(document.querySelectorAll('.chordType:checked')).map(cb => cb.value).join(', '); document.getElementById('enabledChordsReminder').textContent = `${t('enabledTypes')}: ${enabledChords}`; }
 
+        // Advanced Pitch Detection Constants & State (Mobile Optimized)
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) || (window.innerWidth <= 768);
+        }
+
+        const IS_MOBILE = isMobileDevice();
+        const NOTE_CONFIDENCE_THRESHOLD = IS_MOBILE ? 0.25 : 0.30;
+        const NOTE_SUSTAIN_TIME = IS_MOBILE ? 300 : 200; // ms
+        const MIN_FREQUENCY = 65;   // C2
+        const MAX_FREQUENCY = 2093; // C7
+        const FFT_SIZE = IS_MOBILE ? 2048 : 4096;
+        const MEYDA_BUFFER_SIZE = IS_MOBILE ? 1024 : 2048;
+        const PEAK_THRESHOLD = IS_MOBILE ? -80 : -75; // dB
+        const RMS_THRESHOLD = IS_MOBILE ? 0.001 : 0.002;
+        const HARMONIC_TOLERANCE = IS_MOBILE ? 0.08 : 0.05;
+
+        let detectedNotes = new Map();
+        let consecutiveDetections = 0;
+        let lastCheckTime = 0;
+
+        // Microphone variables
+        let micContext, analyser, micStream, micRunning = false;
+        let previousChroma = new Float32Array(12).fill(0);
+        let smoothingAlpha = 0.65;
+        let micSource;
+        let pitchDetectionFrame;
+        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
         // Multi-Pitch Detection Engine
         function processAdvancedAudio(features, webAnalyser) {
-            if (!features || features.rms < 0.003) {
+            if (!features || features.rms < RMS_THRESHOLD) {
                 updateNoteTracker(new Set());
                 return;
             }
-
-            // Probabilistic Processing: reduces CPU on mobile
-            if (IS_MOBILE && Math.random() > 0.3) return;
 
             const freqData = new Float32Array(webAnalyser.frequencyBinCount);
             webAnalyser.getFloatFrequencyData(freqData);
@@ -1598,65 +1597,74 @@
             const sampleRate = micContext.sampleRate;
             const binSize = sampleRate / webAnalyser.fftSize;
 
-            // 1. Peak Detection
+            // Peak Detection
             let peaks = [];
             const threshold = PEAK_THRESHOLD;
-            for (let i = 1; i < freqData.length - 1; i += SCAN_STEP) {
-                if (freqData[i] > threshold && freqData[i] > freqData[i - 1] && freqData[i] > freqData[i + 1]) {
+
+            for (let i = 2; i < freqData.length - 2; i++) {
+                if (freqData[i] > threshold &&
+                    freqData[i] > freqData[i - 1] &&
+                    freqData[i] > freqData[i + 1]) {
                     const freq = i * binSize;
                     if (freq >= MIN_FREQUENCY && freq <= MAX_FREQUENCY) {
-                        peaks.push({ freq, db: freqData[i] });
+                        peaks.push({ freq, db: freqData[i], bin: i });
                     }
                 }
             }
 
-            // Sort peaks by amplitude
             peaks.sort((a, b) => b.db - a.db);
+            peaks = peaks.slice(0, 15);
 
-            // 2. Harmonic Filtering & Note Identification
+            // Note identification with harmonic filtering
             const frameNotes = new Set();
-            const usedFreqs = [];
+            const processedFundamentals = [];
 
             for (const peak of peaks) {
-                // Check if this peak is likely a harmonic of a note already found
-                let isHarmonic = false;
-                for (const used of usedFreqs) {
-                    const ratio = peak.freq / used;
-                    const closestInt = Math.round(ratio);
-                    if (closestInt > 1 && Math.abs(ratio - closestInt) < 0.03) {
-                        isHarmonic = true;
+                const midi = 12 * Math.log2(peak.freq / 440) + 69;
+                const roundedMidi = Math.round(midi);
+                const noteIndex = roundedMidi % 12;
+
+                let isProbablyFundamental = true;
+
+                for (const fund of processedFundamentals) {
+                    const ratio = peak.freq / fund.freq;
+                    const nearestHarmonic = Math.round(ratio);
+
+                    if (nearestHarmonic >= 2 && Math.abs(ratio - nearestHarmonic) < HARMONIC_TOLERANCE) {
+                        isProbablyFundamental = false;
                         break;
                     }
                 }
 
-                if (!isHarmonic) {
-                    const midi = 12 * Math.log2(peak.freq / 440) + 69;
-                    const noteIndex = Math.round(midi) % 12;
+                if (isProbablyFundamental) {
                     frameNotes.add(noteIndex);
-                    usedFreqs.push(peak.freq);
-                    if (usedFreqs.length >= 8) break; // Limit polyphony
+                    processedFundamentals.push(peak);
                 }
+
+                if (frameNotes.size >= 8) break;
             }
 
             updateNoteTracker(frameNotes);
 
-            // Trigger chord check if notes are stable
-            validateChordFromNotes();
+            const now = Date.now();
+            if (now - lastCheckTime > 150) {
+                lastCheckTime = now;
+                validateChordFromNotes();
+            }
         }
 
         function updateNoteTracker(frameNotes) {
             const now = Date.now();
 
-            // Update confidence and sustain
             for (let i = 0; i < 12; i++) {
                 let noteState = detectedNotes.get(i) || { confidence: 0, lastSeen: 0 };
 
                 if (frameNotes.has(i)) {
-                    noteState.confidence = Math.min(1, noteState.confidence + 0.4);
+                    noteState.confidence = Math.min(1, noteState.confidence + 0.5);
                     noteState.lastSeen = now;
                 } else {
                     if (now - noteState.lastSeen > NOTE_SUSTAIN_TIME) {
-                        noteState.confidence = Math.max(0, noteState.confidence - 0.3);
+                        noteState.confidence = Math.max(0, noteState.confidence - 0.2);
                     }
                 }
                 detectedNotes.set(i, noteState);
@@ -1674,7 +1682,10 @@
                 }
             }
 
-            if (stableNotes.length === 0) return;
+            if (stableNotes.length < 2) {
+                consecutiveDetections = 0;
+                return;
+            }
 
             const playedPitches = new Set(stableNotes);
             const isRootless = document.getElementById('rootless').checked;
@@ -1690,13 +1701,23 @@
             const hasNoWrongNotes = [...playedPitches].every(note => allowedNotes.has(note));
 
             if (hasAllEssential && hasNoWrongNotes && playedPitches.size >= essentialNotes.size) {
-                correctChordLocked = true;
-                triggerSuccess();
+                consecutiveDetections++;
+
+                if (consecutiveDetections >= 2) {
+                    correctChordLocked = true;
+                    consecutiveDetections = 0;
+                    triggerSuccess();
+
+                    if (IS_MOBILE) {
+                        const noteNames = stableNotes.map(n => noteStrings[n]).join(' ');
+                        showToast(`✓ Detected: ${noteNames}`, 2000);
+                    }
+                }
+            } else {
+                consecutiveDetections = 0;
             }
         }
 
-        // Microphone Functions
-        // Advanced Dual-Method Recognition Engine (FFT + Sustain Logic)
         async function startMicrophone() {
             if (midiAccess && midiAccess.inputs.size > 0) {
                 alert(t('micMidiConflict'));
@@ -1714,9 +1735,12 @@
 
                 const constraints = {
                     audio: {
-                        echoCancellation: IS_MOBILE,
-                        noiseSuppression: IS_MOBILE,
-                        autoGainControl: IS_MOBILE
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: IS_MOBILE,
+                        sampleRate: 44100,
+                        channelCount: 1,
+                        latency: 0
                     }
                 };
 
@@ -1725,14 +1749,15 @@
 
                 const webAnalyser = micContext.createAnalyser();
                 webAnalyser.fftSize = FFT_SIZE;
-                if (IS_MOBILE) webAnalyser.smoothingTimeConstant = 0.5;
+                webAnalyser.smoothingTimeConstant = 0.6;
+                webAnalyser.minDecibels = -90;
+                webAnalyser.maxDecibels = -10;
                 micSource.connect(webAnalyser);
 
-                // Initialize Meyda
                 if (typeof Meyda === 'undefined') {
                     const script = document.createElement('script');
                     script.src = "https://unpkg.com/meyda/dist/web/meyda.min.js";
-                    script.onload = () => { startMicrophone(); }; // Retry after load
+                    script.onload = () => { startMicrophone(); };
                     document.head.appendChild(script);
                     return;
                 }
@@ -1740,7 +1765,7 @@
                 analyser = Meyda.createMeydaAnalyzer({
                     "audioContext": micContext,
                     "source": micSource,
-                    "bufferSize": 4096,
+                    "bufferSize": MEYDA_BUFFER_SIZE,
                     "featureExtractors": ["rms"],
                     "callback": (features) => {
                         processAdvancedAudio(features, webAnalyser);
@@ -1748,6 +1773,8 @@
                 });
 
                 detectedNotes.clear();
+                consecutiveDetections = 0;
+                lastCheckTime = 0;
                 analyser.start();
                 micRunning = true;
 
@@ -1755,10 +1782,28 @@
                 document.getElementById('micStatus').textContent = t('micActive');
                 document.getElementById('micStatus').style.color = '#4caf50';
 
+                if (IS_MOBILE) {
+                    setTimeout(() => {
+                        showToast('🎵 Suona l\'accordo vicino al telefono', 3000);
+                    }, 500);
+                }
+
             } catch (err) {
                 console.error("Mic Error:", err);
-                document.getElementById('micStatus').textContent = t('micError');
+                let errorMsg = t('micError');
+
+                if (err.name === 'NotAllowedError') {
+                    errorMsg = 'Permesso negato. Abilita il microfono nelle impostazioni.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMsg = 'Microfono non trovato.';
+                }
+
+                document.getElementById('micStatus').textContent = errorMsg;
                 document.getElementById('micStatus').style.color = '#f44336';
+
+                if (IS_MOBILE) {
+                    showToast('❌ ' + errorMsg, 3000);
+                }
             }
         }
 
