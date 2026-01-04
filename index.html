@@ -40,6 +40,19 @@
             min-height: 100vh;
             margin: 0;
             overflow-x: hidden;
+            -webkit-user-select: none;
+            /* Safari */
+            -ms-user-select: none;
+            /* IE 10 and IE 11 */
+            user-select: none;
+            /* Standard syntax */
+        }
+
+        /* Allow selection in input fields */
+        input,
+        textarea {
+            -webkit-user-select: auto;
+            user-select: auto;
         }
 
         #container {
@@ -232,14 +245,14 @@
         .option-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 4px;
+            margin-top: 5px;
         }
 
         .option-group label {
-            font-size: 0.95em;
+            font-size: 0.9em;
             cursor: pointer;
-            padding: 5px;
+            padding: 2px 5px;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -398,8 +411,8 @@
         .options-flex-container {
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         .options-flex-container .option-group {
@@ -864,40 +877,61 @@
     <div id="installModal">
         <div class="modal-content">
             <h2>📱 Install App</h2>
-            <p>Download our app for a better experience! Access offline, faster loading, and full-screen mode.</p>
+            <p data-i18n="installModalDesc">Download our app for a better experience! Access offline, faster loading,
+                and full-screen mode.</p>
             <div class="modal-buttons">
-                <button id="modalInstallBtn">Install Now</button>
-                <button id="modalLaterBtn">Maybe Later</button>
+                <button id="modalInstallBtn" data-i18n="installNow">Install Now</button>
+                <button id="modalLaterBtn" data-i18n="maybeLater">Maybe Later</button>
             </div>
         </div>
     </div>
 
     <!-- PWA Install Button (Fixed) -->
-    <button id="installButton" title="Installa come App">Installa App</button>
+    <button id="installButton" title="Installa come App" data-i18n="installApp">Installa App</button>
 
     <div id="container">
-        <h1>Interactive Jazz Chord Trainer</h1>
+        <h1 data-i18n="appTitle">Interactive Jazz Chord Trainer</h1>
         <!-- Download App Button below title -->
-        <button id="downloadAppBtn" style="display: none;">📱 Download App</button>
+        <button id="downloadAppBtn" style="display: none;" data-i18n="downloadApp">📱 Download App</button>
         <div id="controls">
-            <strong class="controls-title">Select chord types:</strong>
-            <label style="display:block; margin-top:10px;"><input type="checkbox" id="selectAllChords"> Enable
-                all</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <strong class="controls-title" data-i18n="selectChordTypes" style="margin-bottom: 0;">Select chord
+                    types:</strong>
+                <button id="langToggleBtn" style="
+                    padding: 4px 10px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    border-radius: 15px;
+                    cursor: pointer;
+                    border: 2px solid #4caf50;
+                    background: #333;
+                    color: #4caf50;
+                    transition: all 0.2s ease;
+                    user-select: none;
+                    -webkit-tap-highlight-color: transparent;">EN</button>
+            </div>
+            <label style="display:block; margin-top:10px;"><input type="checkbox" id="selectAllChords"> <span
+                    data-i18n="enableAll">Enable all</span></label>
             <div class="chord-groups-container">
                 <details>
-                    <summary>Triads</summary>
+                    <summary data-i18n="triads">Triads</summary>
                     <div class="chord-type-list">
-                        <label><input type="checkbox" class="chordType" value="maj"> Major (maj)</label>
-                        <label><input type="checkbox" class="chordType" value="min"> Minor (min)</label>
-                        <label><input type="checkbox" class="chordType" value="dim"> Diminished</label>
-                        <label><input type="checkbox" class="chordType" value="aug"> Augmented</label>
+                        <label><input type="checkbox" class="chordType" value="maj"> <span data-i18n="chordMaj">Major
+                                (maj)</span></label>
+                        <label><input type="checkbox" class="chordType" value="min"> <span data-i18n="chordMin">Minor
+                                (min)</span></label>
+                        <label><input type="checkbox" class="chordType" value="dim"> <span
+                                data-i18n="chordDim">Diminished</span></label>
+                        <label><input type="checkbox" class="chordType" value="aug"> <span
+                                data-i18n="chordAug">Augmented</span></label>
                     </div>
                 </details>
-                <details>
-                    <summary>Sevenths</summary>
+                <details class="premium-feature locked">
+                    <summary data-i18n="sevenths">Sevenths 🔒</summary>
                     <div class="chord-type-list">
                         <label><input type="checkbox" class="chordType" value="maj7"> Maj7</label>
-                        <label><input type="checkbox" class="chordType" value="7"> Dominant 7</label>
+                        <label><input type="checkbox" class="chordType" value="7"> <span data-i18n="chordDom7">Dominant
+                                7</span></label>
                         <label><input type="checkbox" class="chordType" value="m7"> Min7</label>
                         <label><input type="checkbox" class="chordType" value="mMaj7"> mMaj7</label>
                         <label><input type="checkbox" class="chordType" value="m7b5"> m7b5</label>
@@ -906,17 +940,18 @@
                     </div>
                 </details>
                 <details class="premium-feature locked">
-                    <summary>Ninths 🔒</summary>
+                    <summary data-i18n="ninths">Ninths 🔒</summary>
                     <div class="chord-type-list">
                         <label><input type="checkbox" class="chordType" value="Maj9"> Maj9</label>
-                        <label><input type="checkbox" class="chordType" value="9"> Dominant 9</label>
+                        <label><input type="checkbox" class="chordType" value="9"> <span data-i18n="chordDom9">Dominant
+                                9</span></label>
                         <label><input type="checkbox" class="chordType" value="m9"> Minor 9</label>
                         <label><input type="checkbox" class="chordType" value="7b9"> 7♭9</label>
                         <label><input type="checkbox" class="chordType" value="7#9"> 7♯9</label>
                     </div>
                 </details>
                 <details class="premium-feature locked">
-                    <summary>11th, 13th & Altered 🔒</summary>
+                    <summary data-i18n="elevenths">11th, 13th & Altered 🔒</summary>
                     <div class="chord-type-list">
                         <label><input type="checkbox" class="chordType" value="11"> 11</label>
                         <label><input type="checkbox" class="chordType" value="m11"> m11</label>
@@ -928,7 +963,7 @@
                     </div>
                 </details>
                 <details class="premium-feature locked">
-                    <summary>Suspended & Other 🔒</summary>
+                    <summary data-i18n="suspended">Suspended & Other 🔒</summary>
                     <div class="chord-type-list">
                         <label><input type="checkbox" class="chordType" value="sus2"> Sus2</label>
                         <label><input type="checkbox" class="chordType" value="sus4"> Sus4</label>
@@ -946,19 +981,29 @@
 
             <div class="options-flex-container">
                 <div class="option-group">
-                    <strong class="controls-title">Additional Options:</strong>
-                    <label><input type="checkbox" id="rootless"> Allow rootless voicings</label>
-                    <label><input type="checkbox" id="closePositionToggle"> Close Position</label>
+                    <strong class="controls-title" data-i18n="additionalOptions">Additional Options:</strong>
+                    <label><input type="checkbox" id="rootless"> <span data-i18n="rootless">Allow rootless
+                            voicings</span></label>
+                    <label><input type="checkbox" id="closePositionToggle"> <span data-i18n="closePosition">Close
+                            Position</span></label>
                 </div>
                 <div class="option-group">
-                    <strong class="controls-title">Preferences:</strong>
-                    <label><input type="checkbox" id="selectAllAccidentals"> Enable all preferences</label>
-                    <label><input type="checkbox" class="accidental" value="sharp"> Sharps (#)</label>
-                    <label><input type="checkbox" class="accidental" value="flat"> Flats (b)</label>
-                    <label><input type="checkbox" class="accidental" value="natural"> Naturals</label>
+                    <strong class="controls-title" data-i18n="preferences">Preferences:</strong>
+                    <label><input type="checkbox" id="selectAllAccidentals"> <span data-i18n="enableAllPref">Enable all
+                            preferences</span></label>
+                    <label><input type="checkbox" class="accidental" value="sharp"> <span data-i18n="sharps">Sharps
+                            (#)</span></label>
+                    <label><input type="checkbox" class="accidental" value="flat"> <span data-i18n="flats">Flats
+                            (b)</span></label>
+                    <label><input type="checkbox" class="accidental" value="natural"> <span
+                            data-i18n="naturals">Naturals</span></label>
                 </div>
             </div>
         </div>
+
+        <button id="startButton"
+            style="margin: 10px 0; width: 100%; max-width: 400px; background: #4caf50; font-size: 1.2em; font-weight: bold; padding: 15px;"
+            data-i18n="start">Start</button>
         <div id="chordDisplayContainer">
             <button id="namingToggleBtn" title="Toggle between International and Latin naming">C/DO</button>
             <div id="chordDisplay"></div>
@@ -968,30 +1013,35 @@
 
         <div id="keyboard"></div>
 
-        <div id="premiumSection">
-            <h2>Unlock Full Version</h2>
-            <p>To access all advanced chords (9ths, 11ths, 13ths, Altered, and more), please purchase a license key for
-                $7.99.</p>
-            <p><a href="https://payhip.com/b/JrSdU" target="_blank">Click here to purchase your key.</a></p>
-            <div>
-                <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
-                <button id="unlockButton">Unlock</button>
-            </div>
-            <div id="licenseStatus"></div>
-        </div>
+
 
         <div style="margin-top: 15px;">
-            <label><input type="checkbox" id="audioToggle"> Activate Audio</label>
-            <label><input type="checkbox" id="automaticAdvanceToggle" checked> Automatic Advance</label>
+            <label><input type="checkbox" id="audioToggle"> <span data-i18n="activateAudio">Activate
+                    Audio</span></label>
+            <label><input type="checkbox" id="automaticAdvanceToggle" checked> <span data-i18n="autoAdvance">Automatic
+                    Advance</span></label>
         </div>
         <div class="button-group">
-            <button id="startButton">Start</button>
-            <button id="nextButton">Next Chord</button>
-            <button id="previousButton">Previous Chord</button>
-            <button id="revealButton">Reveal Chord Notes</button>
-            <button id="displayChordButton">Display Chord</button>
-            <button id="fixedNotesButton">Fixed Notes</button>
-            <button id="resetButton">Reset</button>
+            <!-- Start button moved above -->
+            <button id="nextButton" data-i18n="nextChord">Next Chord</button>
+            <button id="previousButton" data-i18n="prevChord">Previous Chord</button>
+            <button id="revealButton" data-i18n="revealNotes">Reveal Chord Notes</button>
+            <button id="displayChordButton" data-i18n="displayChord">Display Chord</button>
+            <button id="fixedNotesButton" data-i18n="fixedNotes">Fixed Notes</button>
+            <button id="resetButton" data-i18n="reset">Reset</button>
+        </div>
+
+        <div id="premiumSection">
+            <h2 data-i18n="unlockTitle">Unlock Full Version</h2>
+            <p data-i18n="unlockDesc">To access all advanced chords (Sevenths, 9ths, 11ths, 13ths, Altered, and more),
+                please purchase a license key for $7.99.</p>
+            <p><a href="https://payhip.com/b/JrSdU" target="_blank" data-i18n="purchaseLink">Click here to purchase your
+                    key.</a></p>
+            <div>
+                <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
+                <button id="unlockButton" data-i18n="unlockBtn">Unlock</button>
+            </div>
+            <div id="licenseStatus"></div>
         </div>
         <div id="chordCount">Chords generated: 0</div>
         <div id="enabledChordsReminder">Enabled chord types: </div>
@@ -1008,6 +1058,156 @@
         let chordHistory = [];
         let historyIndex = -1;
         let isChordDisplayed = false;
+
+        const translations = {
+            en: {
+                appTitle: "Interactive Jazz Chord Trainer",
+                downloadApp: "📱 Download App",
+                selectChordTypes: "Select chord types:",
+                enableAll: "Enable all",
+                triads: "Triads",
+                sevenths: "Sevenths",
+                ninths: "Ninths",
+                elevenths: "11th, 13th & Altered",
+                suspended: "Suspended & Other",
+                additionalOptions: "Additional Options:",
+                rootless: "Allow rootless voicings",
+                closePosition: "Close Position",
+                preferences: "Preferences:",
+                enableAllPref: "Enable all preferences",
+                sharps: "Sharps (#)",
+                flats: "Flats (b)",
+                naturals: "Naturals",
+                activateAudio: "Activate Audio",
+                autoAdvance: "Automatic Advance",
+                start: "Start",
+                nextChord: "Next Chord",
+                prevChord: "Previous Chord",
+                revealNotes: "Reveal Chord Notes",
+                displayChord: "Display Chord",
+                fixedNotes: "Fixed Notes",
+                reset: "Reset",
+                unlockTitle: "Unlock Full Version",
+                unlockDesc: "To access all advanced chords (Sevenths, 9ths, 11ths, 13ths, Altered, and more), please purchase a license key for $7.99.",
+                purchaseLink: "Click here to purchase your key.",
+                unlockBtn: "Unlock",
+                installModalDesc: "Download our app for a better experience! Access offline, faster loading, and full-screen mode.",
+                installNow: "Install Now",
+                maybeLater: "Maybe Later",
+                installApp: "Install App",
+                selectOneType: "Please select at least one chord type.",
+                selectAccidental: "Please select a valid accidental preference.",
+                chordsGenerated: "Chords generated",
+                enabledTypes: "Enabled chord types",
+                midiConnected: "MIDI connected!",
+                midiNotConnected: "MIDI not connected",
+                midiError: "Could not access MIDI devices.",
+                midiUnsupported: "Web MIDI API not supported by this browser.",
+                correct: "✔ Correct",
+                incorrect: "✘ Incorrect",
+                noPrevChords: "No previous chords.",
+                notes: "Notes:",
+                congrats: "Congratulations, you unlocked the full version",
+                invalidKey: "Invalid license key. Please try again.",
+                congratsAlert: "🎉 Congratulations! You now have the full version unlocked!",
+                chordMaj: "Major (maj)",
+                chordMin: "Minor (min)",
+                chordDim: "Diminished",
+                chordAug: "Augmented",
+                chordDom7: "Dominant 7",
+                chordDom9: "Dominant 9"
+            },
+            it: {
+                appTitle: "Trainer Accordi Jazz Interattivo",
+                downloadApp: "📱 Scarica App",
+                selectChordTypes: "Seleziona tipi di accordo:",
+                enableAll: "Abilita tutti",
+                triads: "Triadi",
+                sevenths: "Settime",
+                ninths: "None",
+                elevenths: "11esime, 13esime & Alterate",
+                suspended: "Sospesi & Altro",
+                additionalOptions: "Opzioni Aggiuntive:",
+                rootless: "Accordi senza tonica",
+                closePosition: "Posizione Stretta",
+                preferences: "Preferenze:",
+                enableAllPref: "Abilita tutto",
+                sharps: "Diesis (#)",
+                flats: "Bemolle (b)",
+                naturals: "Naturali",
+                activateAudio: "Audio Attivo",
+                autoAdvance: "Avanzamento Auto",
+                start: "Start",
+                nextChord: "Prossimo Accordo",
+                prevChord: "Accordo Prec.",
+                revealNotes: "Rivela Note",
+                displayChord: "Mostra Accordo",
+                fixedNotes: "Note Fisse",
+                reset: "Reset",
+                unlockTitle: "Sblocca Versione Completa",
+                unlockDesc: "Per accedere a tutti gli accordi avanzati (Settime, None, 11esime, 13esime, Alterati, ecc.), acquista una chiave di licenza per $7.99.",
+                purchaseLink: "Clicca qui per acquistare la chiave.",
+                unlockBtn: "Sblocca",
+                installModalDesc: "Scarica la nostra app per un'esperienza migliore! Accesso offline, caricamento veloce e schermo intero.",
+                installNow: "Installa Ora",
+                maybeLater: "Forse più tardi",
+                installApp: "Installa App",
+                selectOneType: "Seleziona almeno un tipo di accordo.",
+                selectAccidental: "Seleziona una preferenza valida per le alterazioni.",
+                chordsGenerated: "Accordi generati",
+                enabledTypes: "Tipi abilitati",
+                midiConnected: "MIDI connesso!",
+                midiNotConnected: "MIDI non connesso",
+                midiError: "Impossibile accedere ai dispositivi MIDI.",
+                midiUnsupported: "Web MIDI API non supportata da questo browser.",
+                correct: "✔ Corretto",
+                incorrect: "✘ Errato",
+                noPrevChords: "Nessun accordo precedente.",
+                notes: "Note:",
+                congrats: "Congratulazioni, hai sbloccato la versione completa",
+                invalidKey: "Chiave non valida. Riprova.",
+                congratsAlert: "🎉 Congratulazioni! Hai sbloccato la versione completa!",
+                chordMaj: "Maggiore (maj)",
+                chordMin: "Minore (min)",
+                chordDim: "diminuito",
+                chordAug: "aumentato",
+                chordDom7: "dominante7",
+                chordDom9: "dominante9"
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'en';
+
+        function t(key) {
+            return translations[currentLang][key] || key;
+        }
+
+        function updateLocalization() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (key) el.textContent = t(key);
+            });
+            // Update lock texts specifically if needed
+            document.querySelectorAll('.premium-feature.locked summary').forEach(el => {
+                // Re-append lock icon if missing? The textContent replace overwrites children? No, summary usually just text.
+                // Actually summary usually has text + lock.
+                // My generic replacement replaces the whole text. I should append lock if locked.
+                if (!el.textContent.includes('🔒')) el.textContent += ' 🔒';
+            });
+            document.getElementById('langToggleBtn').textContent = currentLang.toUpperCase();
+
+            // Update dynamic texts
+            updateEnabledChordsReminder();
+            document.getElementById('chordCount').textContent = `${t('chordsGenerated')}: ${chordCounter}`;
+            if (midiAccess) document.getElementById('midiStatus').textContent = t('midiConnected');
+            else document.getElementById('midiStatus').textContent = t('midiNotConnected');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'it' : 'en';
+            localStorage.setItem('lang', currentLang);
+            updateLocalization();
+        }
 
         const chordDefinitions = {
             'maj': { essential: [0, 4, 7], optional: [] }, 'min': { essential: [0, 3, 7], optional: [] }, 'dim': { essential: [0, 3, 6], optional: [] }, 'aug': { essential: [0, 4, 8], optional: [] },
@@ -1178,12 +1378,12 @@
             const key = input.value.trim().toUpperCase();
             if (validKeyHashes.includes(quickHash(key))) {
                 await unlockFeatures();
-                status.textContent = 'Congratulations, you unlocked the full version';
+                status.textContent = t('congrats');
                 status.style.color = '#4caf50';
                 setTimeout(() => { status.textContent = ''; }, 3000);
-                alert("🎉 Congratulations! You now have the full version unlocked!");
+                alert(t('congratsAlert'));
             } else {
-                status.textContent = 'Invalid license key. Please try again.';
+                status.textContent = t('invalidKey');
                 status.style.color = '#f44336';
             }
         }
@@ -1241,7 +1441,7 @@
         let useLatinNaming = false;
         const naturalNoteIndexes = [0, 2, 4, 5, 7, 9, 11];
         const midiToNoteName = midi => { const octave = Math.floor(midi / 12) - 1; const noteIndex = midi % 12; return noteNamesSharp[noteIndex] + octave; };
-        function updateEnabledChordsReminder() { const enabledChords = Array.from(document.querySelectorAll('.chordType:checked')).map(cb => cb.value).join(', '); document.getElementById('enabledChordsReminder').textContent = `Enabled chord types: ${enabledChords}`; }
+        function updateEnabledChordsReminder() { const enabledChords = Array.from(document.querySelectorAll('.chordType:checked')).map(cb => cb.value).join(', '); document.getElementById('enabledChordsReminder').textContent = `${t('enabledTypes')}: ${enabledChords}`; }
 
         // Function to convert chord name to Latin format
         function convertChordNameToLatin(chordName) {
@@ -1421,6 +1621,8 @@
             document.getElementById('startButton').addEventListener('click', startTrainer); document.getElementById('nextButton').addEventListener('click', nextChord); document.getElementById('previousButton').addEventListener('click', previousChord); document.getElementById('revealButton').addEventListener('click', revealChord); document.getElementById('displayChordButton').addEventListener('click', displayChord); document.getElementById('resetButton').addEventListener('click', resetTrainer); document.getElementById('fixedNotesButton').addEventListener('click', toggleFixedNotesMode);
             document.getElementById('unlockButton').addEventListener('click', checkLicenseKey);
             document.getElementById('namingToggleBtn').addEventListener('click', toggleNamingFormat);
+            document.getElementById('langToggleBtn').addEventListener('click', toggleLanguage);
+            updateLocalization();
 
             // Check and restore license with self-healing
             await checkAndRestoreLicense();
@@ -1512,13 +1714,13 @@
         function startTrainer() {
             if (running) return;
             const types = getSelectedChordTypes();
-            if (types.length === 0) { document.getElementById('chordDisplay').textContent = "Please select at least one chord type."; document.getElementById('status').textContent = ''; return; }
+            if (types.length === 0) { document.getElementById('chordDisplay').textContent = t('selectOneType'); document.getElementById('status').textContent = ''; return; }
             running = true; chordCounter = 0; correctChordLocked = false; requestMIDIAccess(); nextChord();
         }
         function resetTrainer() {
             running = false; clearTimeout(newChordTimeout);
             document.getElementById('chordDisplay').textContent = ''; document.getElementById('status').textContent = ''; document.getElementById('revealNotes').style.display = 'none';
-            document.getElementById('chordCount').textContent = `Chords generated: 0`;
+            document.getElementById('chordCount').textContent = `${t('chordsGenerated')}: 0`;
             activeNotes.clear(); fixedNotes.clear(); Object.values(virtualKeys).forEach(key => key.classList.remove('pressed'));
             currentChord = null; correctChordLocked = false; chordCounter = 0;
             document.getElementById('selectAllChords').checked = false; document.getElementById('selectAllAccidentals').checked = false; document.getElementById('rootless').checked = false;
@@ -1530,10 +1732,10 @@
             if (!running) return;
             clearDisplayedChord();
             const types = getSelectedChordTypes();
-            if (types.length === 0) { document.getElementById('chordDisplay').textContent = "Please select at least one chord type."; document.getElementById('status').textContent = ''; return; }
+            if (types.length === 0) { document.getElementById('chordDisplay').textContent = t('selectOneType'); document.getElementById('status').textContent = ''; return; }
             const allowedRoots = [];
             for (let i = 0; i < 12; i++) { if (generateNoteName(i) !== null) allowedRoots.push(i); }
-            if (allowedRoots.length === 0) { document.getElementById('chordDisplay').textContent = "Please select a valid accidental preference."; document.getElementById('status').textContent = ''; return; }
+            if (allowedRoots.length === 0) { document.getElementById('chordDisplay').textContent = t('selectAccidental'); document.getElementById('status').textContent = ''; return; }
             let newChord;
             if (historyIndex < chordHistory.length - 1) {
                 historyIndex++; newChord = chordHistory[historyIndex];
@@ -1550,7 +1752,7 @@
             currentChord = newChord;
             updateChordDisplay();
             document.getElementById('status').textContent = ''; document.getElementById('revealNotes').style.display = 'none';
-            chordCounter++; document.getElementById('chordCount').textContent = `Chords generated: ${chordCounter}`;
+            chordCounter++; document.getElementById('chordCount').textContent = `${t('chordsGenerated')}: ${chordCounter}`;
             correctChordLocked = false; activeNotes.clear(); fixedNotes.clear();
             Object.values(virtualKeys).forEach(key => key.classList.remove('pressed'));
         }
@@ -1562,10 +1764,10 @@
                 updateChordDisplay();
                 document.getElementById('status').textContent = ''; document.getElementById('revealNotes').style.display = 'none';
                 activeNotes.clear(); fixedNotes.clear(); Object.values(virtualKeys).forEach(key => key.classList.remove('pressed'));
-            } else { document.getElementById('status').textContent = 'No previous chords.'; document.getElementById('status').className = 'status-wrong'; }
+            } else { document.getElementById('status').textContent = t('noPrevChords'); document.getElementById('status').className = 'status-wrong'; }
         }
 
-        function revealChord() { if (!currentChord) return; const notes = currentChord.all.map(noteIndex => generateNoteName(noteIndex)).filter(Boolean); let notesText = `Notes: ${notes.join(' ')}`; document.getElementById('revealNotes').textContent = notesText; document.getElementById('revealNotes').style.display = 'block'; }
+        function revealChord() { if (!currentChord) return; const notes = currentChord.all.map(noteIndex => generateNoteName(noteIndex)).filter(Boolean); let notesText = `${t('notes')} ${notes.join(' ')}`; document.getElementById('revealNotes').textContent = notesText; document.getElementById('revealNotes').style.display = 'block'; }
 
         function calculateDefaultVoicing(noteClasses, rootNote) {
             const sortedClasses = [...noteClasses].sort((a, b) => a - b); const rootIndex = sortedClasses.indexOf(rootNote);
@@ -1598,8 +1800,8 @@
             midiNotes.forEach(midiNote => { if (virtualKeys[midiNote]) { fixedNotes.add(midiNote); playNote(midiNote, 100, false); } });
             isChordDisplayed = true;
         }
-        function requestMIDIAccess() { if (navigator.requestMIDIAccess) { navigator.requestMIDIAccess().then(onMIDISuccess, () => { document.getElementById('midiStatus').textContent = 'Could not access MIDI devices.'; }); } else { document.getElementById('midiStatus').textContent = 'Web MIDI API not supported by this browser.'; } }
-        function onMIDISuccess(midi) { midiAccess = midi; document.getElementById('midiStatus').textContent = 'MIDI connected!'; for (let input of midiAccess.inputs.values()) { input.onmidimessage = onMIDIMessage; } }
+        function requestMIDIAccess() { if (navigator.requestMIDIAccess) { navigator.requestMIDIAccess().then(onMIDISuccess, () => { document.getElementById('midiStatus').textContent = t('midiError'); }); } else { document.getElementById('midiStatus').textContent = t('midiUnsupported'); } }
+        function onMIDISuccess(midi) { midiAccess = midi; document.getElementById('midiStatus').textContent = t('midiConnected'); for (let input of midiAccess.inputs.values()) { input.onmidimessage = onMIDIMessage; } }
         function onMIDIMessage(msg) {
             clearDisplayedChord(); const [command, note, velocity] = msg.data; if (fixedNotesMode) return;
             if (command === 144 && velocity > 0) { playNote(note, velocity); }
@@ -1618,10 +1820,10 @@
             let isCorrect = hasAllEssential && hasNoWrongNotes;
             if (isCorrect) {
                 correctChordLocked = true;
-                document.getElementById('status').textContent = '✔ Correct'; document.getElementById('status').className = 'status-correct';
+                document.getElementById('status').textContent = t('correct'); document.getElementById('status').className = 'status-correct';
                 if (document.getElementById('audioToggle').checked) { new Audio('https://s3.amazonaws.com/duolingo-f/ding.mp3').play(); }
                 if (document.getElementById('automaticAdvanceToggle').checked) { clearTimeout(newChordTimeout); newChordTimeout = setTimeout(() => { nextChord(); }, 1000); }
-            } else { document.getElementById('status').textContent = '✘ Incorrect'; document.getElementById('status').className = 'status-wrong'; }
+            } else { document.getElementById('status').textContent = t('incorrect'); document.getElementById('status').className = 'status-wrong'; }
         }
         function toggleFixedNotesMode() {
             fixedNotesMode = !fixedNotesMode; document.getElementById('fixedNotesButton').classList.toggle('active', fixedNotesMode);
