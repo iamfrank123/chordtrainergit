@@ -25,6 +25,78 @@
     <meta name="description"
         content="Learn and practice jazz chords with interactive MIDI support and comprehensive chord library" />
     <style>
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 9999;
+            left: 50%;
+            bottom: 30px;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 1px solid #444;
+        }
+
+        #toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 3.5s;
+            animation: fadein 0.5s, fadeout 0.5s 3.5s;
+        }
+
+        @-webkit-keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 30px;
+                opacity: 1;
+            }
+        }
+
+        @-webkit-keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 30px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+
         * {
             box-sizing: border-box;
         }
@@ -1075,11 +1147,20 @@
         let isChordDisplayed = false;
 
         // Advanced Pitch Detection Constants & State
+        function isMobileDevice() {
+            return (typeof window.orientation !== "undefined") || (navigator.userAgent.indexOf('IEMobile') !== -1) || (window.innerWidth <= 768);
+        }
+
+        const IS_MOBILE = isMobileDevice();
         const NOTE_CONFIDENCE_THRESHOLD = 0.35;
         const NOTE_SUSTAIN_TIME = 150; // ms
         const MIN_FREQUENCY = 65;   // C2
         const MAX_FREQUENCY = 2093; // C7
-        const FFT_SIZE = 8192;
+        const FFT_SIZE = IS_MOBILE ? 4096 : 8192;
+        const MEYDA_BUFFER_SIZE = IS_MOBILE ? 2048 : 4096;
+        const PEAK_THRESHOLD = IS_MOBILE ? -75 : -70; // dB
+        const SCAN_STEP = IS_MOBILE ? 2 : 1; // Skip bins on mobile to save CPU
+
 
         let detectedNotes = new Map(); // Note Index -> { confidence: 0-1, lastSeen: timestamp }
 
@@ -1153,7 +1234,8 @@
                 micDisable: "Disable Mic 🎤",
                 micActive: "Microphone Active",
                 micError: "Microphone Error",
-                micMidiConflict: "Mic disabled (MIDI connected)"
+                micMidiConflict: "Mic disabled (MIDI connected)",
+                mobileHint: "Mobile Mode: Optimized for battery and stability"
             },
             it: {
                 appTitle: "Trainer Accordi Jazz Interattivo",
@@ -1216,9 +1298,22 @@
                 micDisable: "Disabilita Microfono 🎤",
                 micActive: "Microfono Attivo",
                 micError: "Errore Microfono",
-                micMidiConflict: "Microfono disabilitato (MIDI connesso)"
+                micMidiConflict: "Microfono disabilitato (MIDI connesso)",
+                mobileHint: "Modalità Mobile: Ottimizzata per batteria e stabilità"
             }
         };
+
+        function showToast(message, duration = 3000) {
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.className = 'show';
+            setTimeout(() => { if (toast.className === 'show') toast.className = ''; }, duration);
+        }
 
         let currentLang = localStorage.getItem('lang') || 'en';
 
@@ -1490,10 +1585,12 @@
         // Multi-Pitch Detection Engine
         function processAdvancedAudio(features, webAnalyser) {
             if (!features || features.rms < 0.003) {
-                // Decay sustain for all notes during silence
                 updateNoteTracker(new Set());
                 return;
             }
+
+            // Probabilistic Processing: reduces CPU on mobile
+            if (IS_MOBILE && Math.random() > 0.3) return;
 
             const freqData = new Float32Array(webAnalyser.frequencyBinCount);
             webAnalyser.getFloatFrequencyData(freqData);
@@ -1503,8 +1600,8 @@
 
             // 1. Peak Detection
             let peaks = [];
-            const threshold = -70; // dB
-            for (let i = 1; i < freqData.length - 1; i++) {
+            const threshold = PEAK_THRESHOLD;
+            for (let i = 1; i < freqData.length - 1; i += SCAN_STEP) {
                 if (freqData[i] > threshold && freqData[i] > freqData[i - 1] && freqData[i] > freqData[i + 1]) {
                     const freq = i * binSize;
                     if (freq >= MIN_FREQUENCY && freq <= MAX_FREQUENCY) {
@@ -1617,9 +1714,9 @@
 
                 const constraints = {
                     audio: {
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
+                        echoCancellation: IS_MOBILE,
+                        noiseSuppression: IS_MOBILE,
+                        autoGainControl: IS_MOBILE
                     }
                 };
 
@@ -1628,6 +1725,7 @@
 
                 const webAnalyser = micContext.createAnalyser();
                 webAnalyser.fftSize = FFT_SIZE;
+                if (IS_MOBILE) webAnalyser.smoothingTimeConstant = 0.5;
                 micSource.connect(webAnalyser);
 
                 // Initialize Meyda
