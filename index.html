@@ -636,12 +636,23 @@
                 white-space: nowrap;
             }
 
-            /* Virtual Keyboard - Properly scaled for portrait */
+            /* Virtual Keyboard - Properly sized for portrait */
             #keyboard {
-                transform: scale(0.5);
-                transform-origin: top center;
-                margin: 0 auto;
-                width: fit-content;
+                margin: 15px auto 10px auto;
+                overflow-x: auto;
+                overflow-y: visible;
+            }
+
+            .key.white {
+                width: 18px;
+                height: 90px;
+                margin: 0 0.5px;
+            }
+
+            .key.black {
+                width: 12px;
+                height: 54px;
+                margin-left: -6px;
             }
 
             #installButton {
